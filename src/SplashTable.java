@@ -1,5 +1,6 @@
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 
 public class SplashTable {
@@ -10,8 +11,6 @@ public class SplashTable {
 
 	static private String inputFileName;
 	static private String dumpFileName;
-	static private String probeFileName;
-	static private String resultFileName;
 
 	static private double[] arrayOfA;
 	
@@ -28,17 +27,14 @@ public class SplashTable {
 	 */
 	public static void main(String[] args) {
 		// Input validation
-		if (args.length != 6 || args.length != 8) {
-			System.out.println("Invalid amount of arguments");
+		System.err.println(Arrays.toString(args));
+		if (args.length != 6) {
+			System.err.println("Invalid amount of arguments");
 			return;
 		}
 		inputFileName = args[4];
 		dumpFileName = args[5];
 
-		if (args.length == 8) {
-			probeFileName = args[6];
-			resultFileName = args[7];
-		}
 		try {
 			bucketSize = Integer.parseInt(args[0]);
 			reinsertions = Integer.parseInt(args[1]);
@@ -61,6 +57,8 @@ public class SplashTable {
 			splashTable.add(new LinkedList<Pair>());
 		}
 		build();
+		dump();
+		probe();
 	}
 
 	private static void build() {
@@ -73,7 +71,7 @@ public class SplashTable {
 			while ((line = reader.readLine()) != null) {
 				String[] keyValuePair = line.split(" ");
 				if (keyValuePair.length != 2) {
-					System.out.println("invalid inputfile format");
+					System.err.println("invalid inputfile format");
 					System.exit(0);
 				}
 				int key = Integer.parseInt(keyValuePair[0]);
@@ -89,7 +87,7 @@ public class SplashTable {
 						int sizeOfBucket = splashTable.get(bucketNum).size();
 						if (sizeOfBucket < sizeOfSmallestBucket) {
 							indexOfSmallestBucket = bucketNum;
-						}
+							sizeOfSmallestBucket = sizeOfBucket;						}
 					}
 
 					// check if the smallest one is full
@@ -112,9 +110,11 @@ public class SplashTable {
 
 					insertionTime++;
 				}
+				//System.out.println("reinsertion: "+insertionTime);
 				// check the reinsertion time
 				if (insertionTime >= reinsertions) {
-					System.out.println("Build failed");
+					System.err.println("Build failed");
+					dump();
 					System.exit(0);
 				}
 				numberOfRecords++;
@@ -130,7 +130,7 @@ public class SplashTable {
 
 	}
 
-	private static void dumpTable() {
+	private static void dump() {
 		File dumpFile = new File(dumpFileName);
 		// if file doesnt exists, then create it
 		if (!dumpFile.exists()) {
@@ -173,7 +173,42 @@ public class SplashTable {
 	private static int multHashing(int key, double A) {
 		double step1 = A * key;
 		double step2 = step1 - Math.floor(step1);
-		double step3 = step2 * bucketSize;
+		double step3 = step2 * ((int) Math.pow(2, S) / bucketSize);
 		return (int) Math.floor(step3);
+	}
+	
+	private static void probe(){
+		BufferedReader reader = null;
+		try {
+			reader = new BufferedReader(new InputStreamReader(System.in));
+			String line = null;
+			ArrayList<Pair> found = new ArrayList<Pair>();
+			//used while to read the File
+			while ((line = reader.readLine()) != null) {
+				//System.out.println(line);
+				int payload = 0;
+				int key = Integer.parseInt(line);
+				for(double h :  arrayOfA){
+					int indexOfBucket = multHashing(key,h);
+					LinkedList<Pair> bucket = splashTable.get(indexOfBucket);
+					for(Pair p : bucket){
+						//int isEqual = (p.key  key)^0xFFFF;
+						//int tempPayload = p.value & isEqual;
+						//payload = payload | tempPayload;
+						int mask = p.key == key ? 0xFFFFFFFF : 0x00000000;
+						int tempPayload = mask & p.value;
+						payload = payload | tempPayload;	
+					}
+				}
+				System.out.println(""+key+" "+payload);
+			}
+
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }
