@@ -1,7 +1,4 @@
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.*;
 
 public class SplashTable {
@@ -44,12 +41,24 @@ public class SplashTable {
 		} catch (NumberFormatException e) {
 			e.printStackTrace();
 		}
-		arrayOfA = new double[numberOfHashFunctions];
+		arrayOfA = new int[numberOfHashFunctions];
+		for(int i=0; i < numberOfHashFunctions; i++){
+			arrayOfA[i]=0;
+		}
         Random rand = new Random();
 		for (int i = 0; i < numberOfHashFunctions; i++) {
 			int temp = rand.nextInt();
-			while (temp == 0.0 || temp%2==0) {
+			while (temp == 0 || temp%2==0) {
 				temp = rand.nextInt();
+			}
+			for(int j = 0; j < i; j++){
+				if(arrayOfA[j]==temp){
+					temp = rand.nextInt();
+					while (temp == 0 || temp%2==0) {
+						temp = rand.nextInt();
+					}
+					j=0;
+				}
 			}
 			arrayOfA[i] = temp;
 		}
@@ -84,7 +93,7 @@ public class SplashTable {
 					int sizeOfSmallestBucket = bucketSize + 1;
 
 					// to find the smallest bucket
-					for (double h : arrayOfA) {
+					for (int h : arrayOfA) {
 						int bucketNum = multHashing(key, h);
 						int sizeOfBucket = splashTable.get(bucketNum).size();
 						if (sizeOfBucket < sizeOfSmallestBucket) {
@@ -172,11 +181,13 @@ public class SplashTable {
 
 	}
 
-	private static int multHashing(int key, double A) {
-		double step1 = A * key;
-		double step2 = step1 - Math.floor(step1);
-		double step3 = step2 * ((int) Math.pow(2, S) / bucketSize);
-		return (int) Math.floor(step3);
+	private static int multHashing(int key, int A) {
+		int step1 = (A * key)/(int)Math.pow(2,S);
+		int step2 = step1%((int)Math.pow(2,S)/bucketSize);
+		//double step2 = step1 - Math.floor(step1);
+		//double step3 = step2 * ((int) Math.pow(2, S) / bucketSize);
+		//return (int) Math.floor(step3);
+		return step2;
 	}
 	
 	private static void probe(){
@@ -190,7 +201,7 @@ public class SplashTable {
 				//System.out.println(line);
 				int payload = 0;
 				int key = Integer.parseInt(line);
-				for(double h :  arrayOfA){
+				for(int h :  arrayOfA){
 					int indexOfBucket = multHashing(key,h);
 					LinkedList<Pair> bucket = splashTable.get(indexOfBucket);
 					for(Pair p : bucket){
