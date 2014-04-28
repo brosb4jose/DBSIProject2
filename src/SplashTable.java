@@ -2,6 +2,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
+import java.util.*;
 
 public class SplashTable {
 	static private int bucketSize;
@@ -12,7 +13,7 @@ public class SplashTable {
 	static private String inputFileName;
 	static private String dumpFileName;
 
-	static private double[] arrayOfA;
+	static private int[] arrayOfA;
 	
 	static int numberOfRecords = 0;
 
@@ -44,10 +45,11 @@ public class SplashTable {
 			e.printStackTrace();
 		}
 		arrayOfA = new double[numberOfHashFunctions];
+        Random rand = new Random();
 		for (int i = 0; i < numberOfHashFunctions; i++) {
-			double temp = Math.random();
-			while (temp == 0.0) {
-				temp = Math.random();
+			int temp = rand.nextInt();
+			while (temp == 0.0 || temp%2==0) {
+				temp = rand.nextInt();
 			}
 			arrayOfA[i] = temp;
 		}
